@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">WidgetAc</string>
+    <string name="x">X :</string>
+    <string name="y">Y :</string>
+    <string name="z">Z :</string>
+	<string name="count">Count :</string>
+	<string name="on">ON</string>
+	<string name="off">OFF</string>
+</resources>
