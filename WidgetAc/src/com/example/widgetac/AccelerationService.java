@@ -29,6 +29,7 @@ public class AccelerationService extends Service implements SensorEventListener 
 	public void onCreate() {
 		super.onCreate();
 		remoteview = new RemoteViews(getPackageName(), R.layout.accelerationwidget) ;
+		initRemoteview() ;
 	}
 
 	@Override
@@ -44,7 +45,7 @@ public class AccelerationService extends Service implements SensorEventListener 
 	public void onDestroy() {
 		super.onDestroy();
 		sencManager.unregisterListener(this) ;
-		count = 0 ;
+		initRemoteview() ;
 	}
 
 	@Override
@@ -106,6 +107,18 @@ public class AccelerationService extends Service implements SensorEventListener 
 		}
 	}
 
+	public void initRemoteview(){
+		count = 0 ;
+		remoteview.setTextViewText(R.id.x, "0.0") ;
+		remoteview.setTextViewText(R.id.y, "0.0") ;
+		remoteview.setTextViewText(R.id.z, "0.0") ;
+		remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
+		//リモートビュー更新
+		ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
+		AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
+		manager.updateAppWidget(thisWidget, remoteview) ;
+	}
+	
 	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public void airChange() {

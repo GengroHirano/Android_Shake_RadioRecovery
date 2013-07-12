@@ -33,7 +33,7 @@ public class AccelerationButtonEventService extends Service {
 		if( BUTTON_CLICK_ACTION.equalsIgnoreCase(intent.getAction()) ){
 			swService = !swService ;
 			if( swService ){
-				remoteview.setTextViewText(R.id.wedgetSW, getString(R.string.on)) ;
+				remoteview.setTextViewText(R.id.wedgetSW, getString(R.string.off)) ;
 
 				Toast.makeText(this, "起動", Toast.LENGTH_SHORT).show() ;
 				//サービスが既に起動しているかどうかを判断してから起動する
@@ -41,7 +41,7 @@ public class AccelerationButtonEventService extends Service {
 				startService(intent) ;
 			}
 			else{
-				remoteview.setTextViewText(R.id.wedgetSW, getString(R.string.off)) ;
+				remoteview.setTextViewText(R.id.wedgetSW, getString(R.string.on)) ;
 				Toast.makeText(this, "終了", Toast.LENGTH_SHORT).show() ;
 				//サービスを終了する
 				intent = new Intent(this, AccelerationService.class) ;
@@ -54,7 +54,7 @@ public class AccelerationButtonEventService extends Service {
 		AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
 		manager.updateAppWidget(thisWidget, remoteview) ;
 
-		return START_NOT_STICKY;
+		return START_REDELIVER_INTENT;
 	}
 
 	@Override
