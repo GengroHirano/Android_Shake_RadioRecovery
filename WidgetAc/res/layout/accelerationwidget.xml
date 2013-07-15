@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/background_dark"
+    android:alpha="0.6">
 <LinearLayout 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
     android:orientation="vertical" >
 
     <LinearLayout
@@ -80,9 +82,14 @@
     </LinearLayout>
 
 </LinearLayout>
-        <Button android:id="@+id/wedgetSW"
+        <Button android:id="@+id/widgetSW"
             android:layout_gravity="right|bottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/on" />
+        
+        <Button android:id="@+id/goSetting"
+            android:layout_gravity="right|top"
+            android:layout_width="24dp"
+            android:layout_height="24dp"/>
 </FrameLayout>

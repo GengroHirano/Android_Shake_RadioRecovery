@@ -7,4 +7,7 @@
 	<string name="count">Count :</string>
 	<string name="on">ON</string>
 	<string name="off">OFF</string>
+	<string name="level">感度</string>
+	<string name="hight">高</string>
+	<string name="pushNotify">電波が弱くなった時に通知する？</string>
 </resources>
