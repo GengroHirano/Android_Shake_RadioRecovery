@@ -5,6 +5,8 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -12,6 +14,7 @@ public class AccelerationWidget extends AppWidgetProvider {
 
 	private final String BUTTON_CLICK_ACTION = "ACCELERATION_BUTTON_CLICK_ACTION" ;
 	private static final String TAG = "AccelerationWidget" ;
+	private RadioCheck check ;
 	Intent intent ;
 
 	@Override
@@ -40,6 +43,9 @@ public class AccelerationWidget extends AppWidgetProvider {
 			AppWidgetManager manager = AppWidgetManager.getInstance(context) ;
 			manager.updateAppWidget(id, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
 			
+			check = new RadioCheck(context) ;
+			TelephonyManager telManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE) ;
+			telManager.listen(check, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) ;
 		}
 	}
 
@@ -49,6 +55,10 @@ public class AccelerationWidget extends AppWidgetProvider {
 		super.onDeleted(context, appWidgetIds);
 		intent = new Intent(context, AccelerationButtonEventService.class) ;
 		context.stopService(intent) ;
+		
+		TelephonyManager telManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE) ;
+		telManager.listen(check, PhoneStateListener.LISTEN_NONE) ;
+		
 		Log.v(TAG, "onDeleted") ;
 	}
 

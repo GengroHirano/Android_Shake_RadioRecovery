@@ -10,4 +10,10 @@
 	<string name="level">感度</string>
 	<string name="hight">高</string>
 	<string name="pushNotify">電波が弱くなった時に通知する？</string>
+	<string name="level1">微</string>
+	<string name="level2">弱</string>
+	<string name="level3">中</string>
+	<string name="level4">強</string>
+	<string name="DBM">Dbm</string>
+	<string name="asu">asu</string>
 </resources>

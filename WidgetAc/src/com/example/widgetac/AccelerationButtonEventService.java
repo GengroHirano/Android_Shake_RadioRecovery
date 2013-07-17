@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 public class AccelerationButtonEventService extends Service {
 
@@ -36,7 +35,7 @@ public class AccelerationButtonEventService extends Service {
 				remoteview.setTextViewText(R.id.widgetSW, getString(R.string.off)) ;
 				remoteview.setInt(R.id.view, "setBackgroundColor", getResources().getColor(R.color.green)) ;
 //				remoteview.setInt(R.id.view, "setBackgroundResource", R.drawable.ic_launcher) ;
-				Toast.makeText(this, "起動", Toast.LENGTH_SHORT).show() ;
+//				Toast.makeText(this, "起動", Toast.LENGTH_SHORT).show() ;
 				intent = new Intent(this, AccelerationService.class) ;
 				startService(intent) ;
 				if( pref.getBoolean("Check", false) ){
@@ -46,7 +45,7 @@ public class AccelerationButtonEventService extends Service {
 			else{
 				remoteview.setTextViewText(R.id.widgetSW, getString(R.string.on)) ;
 				remoteview.setInt(R.id.view, "setBackgroundColor", getResources().getColor(R.color.black)) ;
-				Toast.makeText(this, "終了", Toast.LENGTH_SHORT).show() ;
+//				Toast.makeText(this, "終了", Toast.LENGTH_SHORT).show() ;
 				//サービスを終了する
 				intent = new Intent(this, AccelerationService.class) ;
 				stopService(intent) ;

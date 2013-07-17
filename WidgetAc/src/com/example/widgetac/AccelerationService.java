@@ -15,7 +15,6 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -42,13 +41,12 @@ public class AccelerationService extends Service implements SensorEventListener 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		batteryReceiver = new BroadcastBattery() ;
 		registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_LOW)) ;
-		widgetID = intent.getIntExtra("ID", 0) ;
 		SharedPreferences pref = getSharedPreferences("Setting", Context.MODE_PRIVATE) ;
 		lebel = pref.getInt("Level", 5) ;
 		sencManager = (SensorManager)getSystemService(SENSOR_SERVICE) ;
 		sencManager.registerListener(this, sencManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI) ;
 		//		sencManager.registerListener(this, sencManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_UI) ;
-		return START_NOT_STICKY;
+		return START_STICKY;
 	}
 
 	@Override
@@ -97,15 +95,15 @@ public class AccelerationService extends Service implements SensorEventListener 
 				hcurrentGravity[i] = -hcurrentGravity[i];
 			}
 		}
-		Log.v("X", Float.toString(hcurrentGravity[0])) ;
-		Log.v("Y", Float.toString(hcurrentGravity[1])) ;
-		Log.v("Z", Float.toString(hcurrentGravity[2])) ;
+//		Log.v("X", Float.toString(hcurrentGravity[0])) ;
+//		Log.v("Y", Float.toString(hcurrentGravity[1])) ;
+//		Log.v("Z", Float.toString(hcurrentGravity[2])) ;
 		if( hcurrentGravity[0] > 20 - lebel ){
 			count++ ;
-			remoteview.setTextViewText(R.id.x, Float.toString(hcurrentGravity[0])) ;
-			remoteview.setTextViewText(R.id.y, Float.toString(hcurrentGravity[1])) ;
-			remoteview.setTextViewText(R.id.z, Float.toString(hcurrentGravity[2])) ;
-			remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
+//			remoteview.setTextViewText(R.id.x, Float.toString(hcurrentGravity[0])) ;
+//			remoteview.setTextViewText(R.id.y, Float.toString(hcurrentGravity[1])) ;
+//			remoteview.setTextViewText(R.id.z, Float.toString(hcurrentGravity[2])) ;
+//			remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
 			//リモートビュー更新
 			ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
 			AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
@@ -120,10 +118,10 @@ public class AccelerationService extends Service implements SensorEventListener 
 
 	public void initRemoteview(){
 		count = 0 ;
-		remoteview.setTextViewText(R.id.x, "0.0") ;
-		remoteview.setTextViewText(R.id.y, "0.0") ;
-		remoteview.setTextViewText(R.id.z, "0.0") ;
-		remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
+//		remoteview.setTextViewText(R.id.x, "0.0") ;
+//		remoteview.setTextViewText(R.id.y, "0.0") ;
+//		remoteview.setTextViewText(R.id.z, "0.0") ;
+//		remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
 		//リモートビュー更新
 		ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
 		AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
