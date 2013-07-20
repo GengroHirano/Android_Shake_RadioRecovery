@@ -16,4 +16,11 @@
 	<string name="level4">強</string>
 	<string name="DBM">Dbm</string>
 	<string name="asu">asu</string>
+	<string name="signalLoad">Loading\.\.\.</string>
+	<string name="signalLoadValue">\?\?\?</string>
+	<string name="signaltype">type:</string>
+	<string name="signalcdma">CDMA</string>
+	<string name="signalevdo">EVDO</string>
+	<string name="signalgsm">GSM</string>
+	<string name="signallte">LTE</string>
 </resources>

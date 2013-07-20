@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.Handler;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.util.Log;
@@ -15,7 +16,8 @@ public class RadioCheck extends PhoneStateListener {
 	int waveLevel ;
 	Context context ;
 	RemoteViews remoteview ;
-	
+	SignalStrength signalStrength ;
+
 	public RadioCheck() {
 	}
 
@@ -23,89 +25,76 @@ public class RadioCheck extends PhoneStateListener {
 		context = _context ;
 		remoteview = new RemoteViews(context.getPackageName(), R.layout.accelerationwidget) ; 
 	}
-	
-	@Override
-	public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-		Method[] methods = android.telephony.SignalStrength.class.getMethods() ;
-		for(Method mth : methods){
-			int value = 0;
-			//			Log.v("メソッド名", mth.getName()) ;
-			/**
-			 * 後に使うかもしれないのでコメントアウトにとどめておく
-			 */
-			//			if( mth.getName().equals("getCdmaAsuLevel") || mth.getName().equals("getEvdoAsuLevel")
-			//					|| mth.getName().equals("getGsmAsuLevel") || mth.getName().equals("getLteAsuLevel") ){
-			//				try {
-			//					value = (Integer) mth.invoke(signalStrength, new Object[]{}) ;
-			//					Log.i("asu", Integer.toString(value)) ;
-			//					Log.d("isDbm", Integer.toString(value * 2 - 113)) ;
-			//				} catch (IllegalArgumentException e) {
-			//					e.printStackTrace();
-			//				} catch (IllegalAccessException e) {
-			//					e.printStackTrace();
-			//				} catch (InvocationTargetException e) {
-			//					e.printStackTrace();
-			//				}
-			//				
-			//			}
-			//			if( mth.getName().equals("getCdmaDbm") || mth.getName().equals("getEvdoDbm")
-			//					|| mth.getName().equals("getGsmDbm") || mth.getName().equals("getLteDbm") ){
-			//				try {
-			//					value = (Integer)mth.invoke(signalStrength, new Object[]{}) ;
-			//					Log.d("getDbm", Integer.toString(value)) ;
-			//				} catch (IllegalArgumentException e) {
-			//					e.printStackTrace();
-			//				} catch (IllegalAccessException e) {
-			//					e.printStackTrace();
-			//				} catch (InvocationTargetException e) {
-			//					e.printStackTrace();
-			//				}
-			//			}
-			if( mth.getName().equals("getLteDbm") ){
-				try {
-					value = (Integer)mth.invoke(signalStrength, new Object[]{}) ;
-					waveLevel = value ;
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 
-		if( waveLevel >= 1000000 ){
-			if( signalStrength.isGsm() ){
-				int value = signalStrength.getGsmSignalStrength() ;
-				if( value != 99 ){
-					waveLevel = value * 2 -113 ;
+	@Override
+	public void onSignalStrengthsChanged(SignalStrength _signalStrength) {
+		signalStrength = _signalStrength ;
+		new Thread(new Runnable() {
+			Handler mHandler = new Handler() ;
+			@Override
+			public void run() {
+				Method[] methods = android.telephony.SignalStrength.class.getMethods() ;
+				for(Method mth : methods){
+					int value = 0;
+					//			Log.v("メソッド名", mth.getName()) ;
+					if( mth.getName().equals("getLteDbm") ){
+						try {
+							value = (Integer)mth.invoke(signalStrength, new Object[]{}) ;
+							waveLevel = value ; //ausLevelでとったらdBm = (value - 140)
+							remoteview.setTextViewText(R.id.signaltype, context.getString(R.string.signallte)) ;
+						} catch (IllegalArgumentException e) {
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							e.printStackTrace();
+						} catch (InvocationTargetException e) {
+							e.printStackTrace();
+						}
+					}
 				}
-				else {
-					waveLevel = value ;
+
+				if( waveLevel == Integer.MAX_VALUE ){ //LTEがDbmで取れないと戻り値がint型の最大値でかえってくるようだ
+					if( signalStrength.isGsm() ){
+						int value = signalStrength.getGsmSignalStrength() ;
+						if( value != 99 ){
+							waveLevel = value * 2 -113 ;
+						}
+						else {
+							waveLevel = value ;
+						}
+						remoteview.setTextViewText(R.id.signaltype, context.getString(R.string.signalgsm)) ;
+					}
+					else {
+						int strength = -1 ;
+						if( signalStrength.getEvdoDbm() < 0 ){
+							/*EVDO*/
+							strength = signalStrength.getEvdoEcio() < signalStrength.getEvdoSnr() ? signalStrength.getEvdoEcio() : signalStrength.getEvdoSnr() ;
+							remoteview.setTextViewText(R.id.signaltype, context.getString(R.string.signalevdo)) ;
+						}
+						else if( signalStrength.getCdmaDbm() < 0 ){
+							/*CDMA*/
+							strength = signalStrength.getCdmaDbm() < signalStrength.getCdmaEcio() ? signalStrength.getCdmaDbm() : signalStrength.getCdmaEcio() ;
+							remoteview.setTextViewText(R.id.signaltype, context.getString(R.string.signalcdma)) ;
+						}
+						waveLevel = strength ;
+					}
 				}
+				Log.i("電波強度", Integer.toString(waveLevel)) ;
+				mHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						if(remoteview != null){
+							remoteview.setTextViewText(R.id.values, Integer.toString(waveLevel)) ;
+							//AppWidgetの画面を更新
+							ComponentName thisWidget = new ComponentName(context, AccelerationWidget.class) ;
+							AppWidgetManager manager = AppWidgetManager.getInstance(context) ;
+							manager.updateAppWidget(thisWidget, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
+						}
+					}
+				}) ;
+
 			}
-			else {
-				int strength = -1 ;
-				if( signalStrength.getEvdoDbm() < 0 ){
-					/*EVDO*/
-					strength = signalStrength.getEvdoEcio() < signalStrength.getEvdoSnr() ? signalStrength.getEvdoEcio() : signalStrength.getEvdoSnr() ;
-				}
-				else if( signalStrength.getCdmaDbm() < 0 ){
-					/*CDMA*/
-					strength = signalStrength.getCdmaDbm() < signalStrength.getCdmaEcio() ? signalStrength.getCdmaDbm() : signalStrength.getCdmaEcio() ;
-				}
-				waveLevel = strength ;
-			}
-		}
-		Log.i("電波強度", Integer.toString(waveLevel)) ;
-		if(remoteview != null){
-			remoteview.setTextViewText(R.id.values, Integer.toString(waveLevel)) ;
-			//AppWidgetの画面を更新
-			ComponentName thisWidget = new ComponentName(context, AccelerationWidget.class) ;
-			AppWidgetManager manager = AppWidgetManager.getInstance(context) ;
-			manager.updateAppWidget(thisWidget, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
-		}
+		}).start() ;
 		super.onSignalStrengthsChanged(signalStrength);
 	}
 }

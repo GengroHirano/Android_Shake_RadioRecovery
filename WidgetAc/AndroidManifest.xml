@@ -7,7 +7,8 @@
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
 
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -18,36 +19,35 @@
             android:label="AccelerationWidget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="ACCELERATION_BUTTON_CLICK_ACTION" />
+                <!-- <action android:name="ACCELERATION_BUTTON_CLICK_ACTION" /> -->
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widgetsetting" />
         </receiver>
-<!-- 
-        <receiver 
-            android:name="com.example.widgetac.BroadcastBattery">
+        <receiver
+            android:name="com.example.widgetac.AccelerationButtonEventBroadcast"
+            android:exported="false" >
             <intent-filter>
-                <action android:name="android.intent.action.BATTERY_CHANGED"/>
+                <action android:name="ACCELERATION_BUTTON_CLICK_ACTION" />
             </intent-filter>
         </receiver>
- -->        
+
         <service
             android:name="AccelerationService"
             android:exported="false" >
         </service>
-        
         <service
-            android:name="AccelerationButtonEventService"
+            android:name="ButtonEventSettingService"
             android:exported="false" >
             <intent-filter>
                 <action android:name="ACCELERATION_BUTTON_CLICK_ACTION" />
             </intent-filter>
         </service>
-        <activity 
+        <activity
             android:name="ActivitySetting"
-            android:label="@string/app_name">
+            android:label="@string/app_name" >
         </activity>
     </application>
 
