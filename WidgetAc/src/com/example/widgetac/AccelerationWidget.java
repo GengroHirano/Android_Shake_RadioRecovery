@@ -7,6 +7,7 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.PhoneStateListener;
@@ -32,26 +33,33 @@ public class AccelerationWidget extends AppWidgetProvider {
 		intent = new Intent(context, ButtonEventSettingService.class) ;
 		intent.putExtra("WidgetID", appWidgetIds) ;
 		context.startService(intent) ;
+		
 		Log.v(TAG, "onUpdate") ;
 		//実はサービスでおんなじ処理をしている。二度手間感がとんでもないが、コレをしないと、少し古い端末でボタンが反応しなくなる不具合が発生する
-		for(int id : appWidgetIds){
-
+//		for(int id : appWidgetIds){
+			
 			RemoteViews remoteview = new RemoteViews(context.getPackageName(), R.layout.accelerationwidget) ;
-
+			if( isServiceRunning(AccelerationService.class.getCanonicalName(), context) ){
+				remoteview.setTextViewText(R.id.widgetSW, context.getString(R.string.off)) ;
+				remoteview.setInt(R.id.view, "setBackgroundColor", context.getResources().getColor(R.color.green)) ;
+			}
+			
+			
 			Intent settingIntent = new Intent(context, ActivitySetting.class) ;
-			PendingIntent pIntent = PendingIntent.getActivity(context, id, settingIntent, 0) ;
+			PendingIntent pIntent = PendingIntent.getActivity(context, 0, settingIntent, 0) ;
 			remoteview.setOnClickPendingIntent(R.id.goSetting, pIntent) ;
 
 			//ブロードキャスト発行設定を登録
 			Intent buttonIntent = new Intent() ;
 			buttonIntent.setAction(BUTTON_CLICK_ACTION) ;
-			PendingIntent pendIntent = PendingIntent.getBroadcast(context, id, buttonIntent, 0) ;
+			PendingIntent pendIntent = PendingIntent.getBroadcast(context, 0, buttonIntent, 0) ;
 			remoteview.setOnClickPendingIntent(R.id.widgetSW, pendIntent) ;
 
+			ComponentName thisWidget = new ComponentName(context, AccelerationWidget.class) ;
 			AppWidgetManager manager = AppWidgetManager.getInstance(context) ;
-			manager.updateAppWidget(id, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
+			manager.updateAppWidget(thisWidget, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
 			
-		}
+//		}
 
 		check = getRadioCheck(context) ;
 		telManager = getTelephonyManager(context) ;

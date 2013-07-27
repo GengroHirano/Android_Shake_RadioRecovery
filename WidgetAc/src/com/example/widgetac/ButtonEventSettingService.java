@@ -1,7 +1,11 @@
 package com.example.widgetac;
 
+import java.util.List;
+
+import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,10 +29,10 @@ public class ButtonEventSettingService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		//ウィジェットのペンディングインテントの登録
 		context = this ;
-		new Thread(new Runnable() {
-			//実はAccelerationWidgetで同じ処理をしている。二度手間感がとんでもないが、コレを外すと、新しく配置したウィジェットのボタンが反応しなくなる
-			@Override
-			public void run() {
+//		new Thread(new Runnable() {
+//			//実はAccelerationWidgetで同じ処理をしている。二度手間感がとんでもないが、コレを外すと、新しく配置したウィジェットのボタンが反応しなくなる
+//			@Override
+//			public void run() {
 				RemoteViews remoteview = new RemoteViews(getPackageName(), R.layout.accelerationwidget) ;
 
 				Intent settingIntent = new Intent(context, ActivitySetting.class) ;
@@ -44,8 +48,8 @@ public class ButtonEventSettingService extends Service {
 				ComponentName thisWidget = new ComponentName(context, AccelerationWidget.class) ;
 				AppWidgetManager manager = AppWidgetManager.getInstance(context) ;
 				manager.updateAppWidget(thisWidget, remoteview) ; //此処をウィジェットのIDにしてやると特定のウィジェットに対して変更が出来る
-			}
-		}).start() ;
+//			}
+//		}).start() ;
 		return START_REDELIVER_INTENT;
 	}
 
@@ -54,6 +58,11 @@ public class ButtonEventSettingService extends Service {
 
 				RemoteViews remoteview = new RemoteViews(getPackageName(), R.layout.accelerationwidget) ;
 
+				if( isServiceRunning(AccelerationService.class.getCanonicalName()) ){
+					remoteview.setTextViewText(R.id.widgetSW, context.getString(R.string.off)) ;
+					remoteview.setInt(R.id.view, "setBackgroundColor", context.getResources().getColor(R.color.green)) ;
+				}
+				
 				Intent settingIntent = new Intent(this, ActivitySetting.class) ;
 				PendingIntent pIntent = PendingIntent.getActivity(this, 0, settingIntent, 0) ;
 				remoteview.setOnClickPendingIntent(R.id.goSetting, pIntent) ;
@@ -80,4 +89,16 @@ public class ButtonEventSettingService extends Service {
 		return null;
 	}
 
+	private boolean isServiceRunning( String serviceName ) {
+		ActivityManager activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);
+
+		for (RunningServiceInfo info : services) {
+			if (serviceName.equals(info.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

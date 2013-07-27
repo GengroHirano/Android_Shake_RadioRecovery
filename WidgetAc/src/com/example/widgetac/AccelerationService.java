@@ -8,13 +8,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -29,7 +33,11 @@ public class AccelerationService extends Service implements SensorEventListener 
 	int lebel ;
 	static int widgetID = 0;
 	private BroadcastBattery batteryReceiver ;
-	
+
+	//縦に振ったらフラッシュライトをonにするように設定してみる
+	Camera cam ;
+	int countY = 0 ;
+	boolean isFlash = false ;
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -45,6 +53,9 @@ public class AccelerationService extends Service implements SensorEventListener 
 		lebel = pref.getInt("Level", 5) ;
 		sencManager = (SensorManager)getSystemService(SENSOR_SERVICE) ;
 		sencManager.registerListener(this, sencManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI) ;
+
+		//		ここでカメラをオープンすると恐ろしく電池を食うようになる
+		//		cam = Camera.open() ;
 		//		sencManager.registerListener(this, sencManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_UI) ;
 		return START_STICKY;
 	}
@@ -55,6 +66,10 @@ public class AccelerationService extends Service implements SensorEventListener 
 		unregisterReceiver(batteryReceiver) ;
 		sencManager.unregisterListener(this) ;
 		initRemoteview() ;
+
+		if( isFlash ){
+			cam.release() ;
+		}
 	}
 
 	@Override
@@ -95,39 +110,84 @@ public class AccelerationService extends Service implements SensorEventListener 
 				hcurrentGravity[i] = -hcurrentGravity[i];
 			}
 		}
-//		Log.v("X", Float.toString(hcurrentGravity[0])) ;
-//		Log.v("Y", Float.toString(hcurrentGravity[1])) ;
-//		Log.v("Z", Float.toString(hcurrentGravity[2])) ;
+		//デバッグ用
+		//		Log.v("X", Float.toString(hcurrentGravity[0])) ;
+		//		Log.v("Y", Float.toString(hcurrentGravity[1])) ;
+		//		Log.v("Z", Float.toString(hcurrentGravity[2])) ;
 		if( hcurrentGravity[0] > 20 - lebel ){
 			count++ ;
-//			remoteview.setTextViewText(R.id.x, Float.toString(hcurrentGravity[0])) ;
-//			remoteview.setTextViewText(R.id.y, Float.toString(hcurrentGravity[1])) ;
-//			remoteview.setTextViewText(R.id.z, Float.toString(hcurrentGravity[2])) ;
-//			remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
-			//リモートビュー更新
-			ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
-			AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
-			manager.updateAppWidget(thisWidget, remoteview) ;
+			if( count == 1 ){
+				new Handler().postDelayed(new Runnable() {
+
+					@Override
+					public void run() {
+						count = 0 ;
+						//						Toast.makeText(getApplicationContext(), "カウントリセット", Toast.LENGTH_SHORT).show() ;
+					}
+				}, 3000) ;
+			}
+			//デバッグ用加速度表示 ;
+			//			remoteview.setTextViewText(R.id.x, Float.toString(hcurrentGravity[0])) ;
+			//			remoteview.setTextViewText(R.id.y, Float.toString(hcurrentGravity[1])) ;
+			//			remoteview.setTextViewText(R.id.z, Float.toString(hcurrentGravity[2])) ;
+			//			remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
+			//リモートビュー更新---デバッグ用
+			//			ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
+			//			AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
+			//			manager.updateAppWidget(thisWidget, remoteview) ;
 			if(count > 4){
-				Toast.makeText(this, "回復するぜ!", Toast.LENGTH_SHORT).show() ;
+				Toast.makeText(getApplicationContext(), "回復するぜ!", Toast.LENGTH_SHORT).show() ;
 				airChange() ;
 				count = 0 ;
+			}
+		}
+
+		if( hcurrentGravity[1] > 23 - lebel ){
+			countY++ ;
+			if( countY == 1 ){
+				new Handler().postDelayed(new Runnable() {
+
+					@Override
+					public void run() {
+						countY = 0 ;
+						//						Toast.makeText(getApplicationContext(), "カウントリセット", Toast.LENGTH_SHORT).show() ;
+					}
+				}, 3000) ;
+			}
+			if(countY == 4){
+				if( !isFlash ){
+					cam = Camera.open() ;
+					Camera.Parameters camParam = cam.getParameters() ;
+					camParam.setFlashMode(Parameters.FLASH_MODE_TORCH) ;
+					cam.setParameters(camParam) ;
+					cam.startPreview() ;
+					isFlash = true ;
+					Toast.makeText(this, "点灯！", Toast.LENGTH_SHORT).show();
+				}
+				else{
+					Camera.Parameters camParam = cam.getParameters() ;
+					camParam.setFlashMode(Parameters.FLASH_MODE_OFF) ;
+					cam.setParameters(camParam) ;
+					cam.startPreview() ;
+					cam.release() ;
+					isFlash = false ;
+				}
 			}
 		}
 	}
 
 	public void initRemoteview(){
 		count = 0 ;
-//		remoteview.setTextViewText(R.id.x, "0.0") ;
-//		remoteview.setTextViewText(R.id.y, "0.0") ;
-//		remoteview.setTextViewText(R.id.z, "0.0") ;
-//		remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
+		//		remoteview.setTextViewText(R.id.x, "0.0") ;
+		//		remoteview.setTextViewText(R.id.y, "0.0") ;
+		//		remoteview.setTextViewText(R.id.z, "0.0") ;
+		//		remoteview.setTextViewText(R.id.count, Integer.toString(count)) ;
 		//リモートビュー更新
 		ComponentName thisWidget = new ComponentName(this, AccelerationWidget.class) ;
 		AppWidgetManager manager = AppWidgetManager.getInstance(this) ;
 		manager.updateAppWidget(thisWidget, remoteview) ;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public void airChange() {
@@ -166,7 +226,7 @@ public class AccelerationService extends Service implements SensorEventListener 
 			Toast.makeText(this, "機内モードだぜアンタ", Toast.LENGTH_SHORT).show() ;
 		}
 	}
-	
+
 	public synchronized void sleep(long msec){
 		try {
 			wait(msec) ;

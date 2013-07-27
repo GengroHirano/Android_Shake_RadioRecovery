@@ -2,8 +2,8 @@
 <appwidget-provider 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialLayout="@layout/accelerationwidget"
-    android:minWidth="146dp"
-    android:minHeight="72dp"
+    android:minWidth="72dp"
+    android:minHeight="17dp"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0">
 </appwidget-provider>
