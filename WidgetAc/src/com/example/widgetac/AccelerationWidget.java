@@ -22,6 +22,7 @@ public class AccelerationWidget extends AppWidgetProvider {
 	Intent intent ;
 	static TelephonyManager telManager = null;
 	static RadioCheck check = null;
+	boolean radiochecker = false ;
 	@Override
 	public void onEnabled(Context context) {
 		super.onEnabled(context);
@@ -61,9 +62,10 @@ public class AccelerationWidget extends AppWidgetProvider {
 			
 //		}
 
-		check = getRadioCheck(context) ;
-		telManager = getTelephonyManager(context) ;
-		telManager.listen(check, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) ;
+//		check = getRadioCheck(context) ;
+//		telManager = getTelephonyManager(context) ;
+//		telManager.listen(check, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) ;
+//		telManager.listen(check, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE) ;
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 	}
 
@@ -77,11 +79,11 @@ public class AccelerationWidget extends AppWidgetProvider {
 	@Override
 	//起動している全てのウィジェットが終了するとコレが呼ばれる
 	public void onDisabled(Context context) {
-		check = getRadioCheck(context) ;
-		telManager = getTelephonyManager(context) ;
-		telManager.listen(check, PhoneStateListener.LISTEN_NONE) ;
-		check = null ;
-		telManager = null ;
+//		check = getRadioCheck(context) ;
+//		telManager = getTelephonyManager(context) ;
+//		telManager.listen(check, PhoneStateListener.LISTEN_NONE) ;
+//		check = null ;
+//		telManager = null ;
 		if( isServiceRunning(AccelerationService.class.getCanonicalName(), context) ){
 			intent = new Intent(context, AccelerationService.class) ;
 			context.stopService(intent) ;
@@ -97,6 +99,19 @@ public class AccelerationWidget extends AppWidgetProvider {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		super.onReceive(context, intent);
+		String action = intent.getAction() ;
+		check = getRadioCheck(context) ;
+		telManager = getTelephonyManager(context) ;
+		if( AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action) ){
+			telManager.listen(check, PhoneStateListener.LISTEN_NONE) ;
+			telManager.listen(check, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) ;
+		}
+		else if( AppWidgetManager.ACTION_APPWIDGET_DISABLED.equals(action) ){
+			telManager.listen(check, PhoneStateListener.LISTEN_NONE) ;
+			check = null ;
+			telManager = null ;
+		}
+		Log.v("onReceive", action) ;
 	}
 	
 	private boolean isServiceRunning( String serviceName, Context context) {

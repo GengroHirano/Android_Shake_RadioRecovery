@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 public class AccelerationButtonEventBroadcast extends BroadcastReceiver {
@@ -43,7 +44,7 @@ public class AccelerationButtonEventBroadcast extends BroadcastReceiver {
 				}
 			}
 		}
-
+		Log.v("", "イベントテスト") ;
 		//AppWidgetの画面を更新
 		ComponentName thisWidget = new ComponentName(context, AccelerationWidget.class) ;
 		AppWidgetManager manager = AppWidgetManager.getInstance(context) ;

@@ -5,5 +5,5 @@
     android:minWidth="146dp"
     android:minHeight="72dp"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="0">
+    android:updatePeriodMillis="28800000"><!--8時間に一度-->
 </appwidget-provider>
